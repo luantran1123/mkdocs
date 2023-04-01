@@ -1,16 +1,25 @@
-FROM python:3.8
+FROM python:3-alpine
 
-MAINTAINER Metadrop <hi@metadrop.net>
+ARG USER=1001
 
-ENV LAST_UPDATE 2022-03-01
+RUN adduser -h /usr/src/mkdocs -D -u $USER mkdocs \
+&& apk add bash \
+&& apk add git 
 
-RUN pip install mkdocs mkdocs-material
-RUN pip install mkdocs-pdf-export-plugin
+ENV PATH="${PATH}:/usr/src/mkdocs/.local/bin"
 
-EXPOSE 8000
+USER mkdocs
+RUN mkdir -p /usr/src/mkdocs/build
+WORKDIR /usr/src/mkdocs/build
 
-COPY init /app/init
-RUN chmod 755 /app/init
+RUN pip install --upgrade pip
 
-ENTRYPOINT ["/app/init"]
-CMD ["serve"]
+RUN pip install pymdown-extensions \
+&& pip install mkdocs \
+&& pip install mkdocs-material \
+&& pip install mkdocs-rtd-dropdown \
+&& pip install mkdocs-git-revision-date-plugin \
+&& pip install mkdocs-git-revision-date-localized-plugin
+
+
+ENTRYPOINT ["/usr/src/mkdocs/.local/bin/mkdocs"]
